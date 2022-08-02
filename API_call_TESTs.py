@@ -104,7 +104,7 @@ fxcm_api.subscribe_market_data("EUR/USD", (print_data,))
 
 fxcm_api.close()
 
-#%% FXCM - Section 3: TEST-Executing orders
+#%% FXCM - Section 6: TEST-Executing orders
 fxcm_api.get_open_positions()
 fxcm_api.create_market_buy_order("EUR/USD", 10) #1 lot is 1000 position, so 10 orders means 10000 amount
 
@@ -122,7 +122,26 @@ fxcm_api.close_all_for_symbol("EUR/USD")
 fxcm_api.get_closed_positions_summary()[col]
 fxcm_api.close()
 
+#%% Datetime - Section 7: Parsing data with pandas DataFrame
+temp = pd.read_csv("temp.csv", parse_dates= ["datetime"], index_col= "datetime")
+temp.loc["2015"] #Yearly
+temp.loc["2015-05"] #Monthly
+temp.loc["2015-05-20"] #Daily
+temp.loc["2015-05-20 10:00:00"] #Hourly
+temp.loc["2015-01-01" : "2015-12-31"] #By period
 
+# Resampling by Day, EOD of Month, Start of a Month, EOD Year, Start of year and so on 
+temp.resample("D").sum()
+temp.resample("2H").first()
+temp.resample("W").mean()
+temp.resample("W-Wed").mean()
+temp.resample("M").mean()
+temp.resample("MS").mean()
+temp.resample("MS", loffset="14D").mean()
+temp.resample("Q").mean()
+temp.resample("Q-Feb").mean()
+temp.resample("Y").mean()
+temp.resample("YS").mean()
 
 
 
