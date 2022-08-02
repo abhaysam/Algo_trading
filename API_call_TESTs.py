@@ -2,7 +2,11 @@
 #Importing essential libraries
 import os
 import time
+import matplotlib.pyplot as plt
+plt.style.use("seaborn")
+import yfinance as yf
 import pandas as pd
+import numpy as np
 import tpqoa
 import fxcmpy
 
@@ -143,16 +147,53 @@ temp.resample("Q-Feb").mean()
 temp.resample("Y").mean()
 temp.resample("YS").mean()
 
+#%% Importing data from Yahoo Finance
+ticker = ["AAPL", "BA", "KO", "IBM", "DIS", "MSFT"]
+stocks_data = yf.download(ticker, start = "2010-01-01", end = "2019-02-06")
+# Savings as csv and back
+# stocks_data.to_csv("stocks.csv")
+# pd.read_csv("stocks.csv", header = [0,1], index_col = [0], parse_dates =[0])
 
+# stocks_data.columns = stocks_data.columns.to_flat_index()
 
+#%% Inspection and visualization of single stocks data
 
+# Extracting the closing price of the stocks
+close = stocks_data.loc[:,"Close"].copy()
+close.plot()
+plt.show()
 
+# Normalizing the price series
+normalized_data = close.div(close.iloc[0]).mul(100)
+normalized_data.plot()
+plt.show()
 
+aapl = close.AAPL.copy().to_frame()
+aapl["lag1"]=aapl.shift(periods = 1) #this just shifts the value by one period. This way we can compute the difference between the prices on the same day.
+aapl["diff"] = aapl.AAPL.sub(aapl.lag1)
+aapl["pct_chg"] = aapl.AAPL.div(aapl.lag1).sub(1).mul(100)
 
+# Simplified
+aapl["diff2"] = aapl.AAPL.diff(periods = 1)
+aapl["pct_chg2"] = aapl.AAPL.pct_change(periods = 1).mul(100)
 
+# Monthly returns of a stock
+monthly_returns = aapl.AAPL.resample("BM").last().pct_change(periods = 1).mul(100) #BM for last business day of the month
 
+# Plotting Apple returns
+aapl = close.AAPL.copy().to_frame()
+ret = aapl.AAPL.pct_change().dropna()
+ret.plot(kind = "hist", bins = 100)
+plt.show()
 
+daily_mean_return = ret.mean()
+var_daily_returns = ret.var()
+volatility_daily = ret.std()
+ann_mean_retrun = ret.mean()*252
+ann_var_return =ret.var()*252
+volatility_ann = ret.std()*np.sqrt(252)
 
+#%% Inspection and visualization of all stocks data simultaneously
 
 
 
