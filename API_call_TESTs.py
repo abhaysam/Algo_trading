@@ -4,6 +4,7 @@ import os
 import time
 import matplotlib.pyplot as plt
 plt.style.use("seaborn")
+import seaborn as sns
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -195,9 +196,22 @@ volatility_ann = ret.std()*np.sqrt(252)
 
 #%% Inspection and visualization of all stocks data simultaneously
 
+ret = close.pct_change().dropna()
+summary = ret.describe().T.loc[:,["mean","std"]] #Daily stats
+summary["mean"] = summary["mean"]*252
+summary["std"] = summary["std"]*np.sqrt(252)
 
+summary.plot(kind = "scatter", x = "std", y = "mean", figsize = (15,12), s = 50, fontsize = 15)
+for i in summary.index:
+    plt.annotate(i, xy=(summary.loc[i, "std"]+0.002, summary.loc[i, "mean"]+0.002), size = 15)
+plt.xlabel("ann. Risk(std)", fontsize = 15)
+plt.ylabel("ann. Return", fontsize = 15)
+plt.title("Risk/Return", fontsize = 20)
+plt.show()
 
-
+# Correlation and covariance
+ret.cov()
+ret.corr()
 
 
 
