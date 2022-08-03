@@ -137,6 +137,7 @@ temp.loc["2015-01-01" : "2015-12-31"] #By period
 
 # Resampling by Day, EOD of Month, Start of a Month, EOD Year, Start of year and so on 
 temp.resample("D").sum()
+temp.resample("30 Min").mean() # This will create missing values (NaN). Use temp.interpolate() to get continuous evolution of temperature
 temp.resample("2H").first()
 temp.resample("W").mean()
 temp.resample("W-Wed").mean()
@@ -148,7 +149,7 @@ temp.resample("Q-Feb").mean()
 temp.resample("Y").mean()
 temp.resample("YS").mean()
 
-#%% Importing data from Yahoo Finance
+#%% Data Import - Section 8: Importing data from Yahoo Finance
 ticker = ["AAPL", "BA", "KO", "IBM", "DIS", "MSFT"]
 stocks_data = yf.download(ticker, start = "2010-01-01", end = "2019-02-06")
 # Savings as csv and back
@@ -157,7 +158,7 @@ stocks_data = yf.download(ticker, start = "2010-01-01", end = "2019-02-06")
 
 # stocks_data.columns = stocks_data.columns.to_flat_index()
 
-#%% Inspection and visualization of single stocks data
+#%% Data Inspection - Section 9: Inspection and visualization of single stocks data
 
 # Extracting the closing price of the stocks
 close = stocks_data.loc[:,"Close"].copy()
@@ -182,7 +183,7 @@ aapl["pct_chg2"] = aapl.AAPL.pct_change(periods = 1).mul(100)
 monthly_returns = aapl.AAPL.resample("BM").last().pct_change(periods = 1).mul(100) #BM for last business day of the month
 
 # Plotting Apple returns
-aapl = close.AAPL.copy().to_frame()
+aapl = close.AAPL.copy().to_frame() #Dealing only with the APPL stock price
 ret = aapl.AAPL.pct_change().dropna()
 ret.plot(kind = "hist", bins = 100)
 plt.show()
@@ -213,8 +214,93 @@ plt.show()
 ret.cov()
 ret.corr()
 
+#%% SMA - Section 9: Dealing with SP500 data
+SP_500_Price = pd.read_excel("SP500.xls", sheet_name="SP500",parse_dates=["Date"], index_col = "Date", usecols="A:G")
+SP_500_Price.to_csv("SP500.csv") #to_excel converts the pd.DataFrame to excel
+SP_500_Price_close = SP_500_Price.Close.to_frame()
+SP_500_Price_close = SP_500_Price_close.loc["2008-12-31":"2018-12-28"].cop()
+SP_500_Price_close.plot()
+plt.show()
+
+# Rolling values of SP500
+SP_500_rolling = SP_500_Price.Close.rolling(window = 10)
+SP_500_Price_close.head(15)
+
+mean = SP_500_Price.Close.rolling(window = 10).mean() #mean can be changed with median, max, min
+
+#%% Momentum with SMA - Section 10: 
+"""
+The logic is that shorter SMA caputures most recent trend and hence it should persists in the near future
+Trader invests when the shorter SMA is above the longer SMA and divest/short when the shorter SMA is below the longer SMA
+Momentum strategy is for longer horizon
+"""
+    
+SP_500_Price_close["SMA50"] = SP_500_Price.Close.rolling(window = 50, min_periods = 50).mean() #mean can be changed with median, max, min
+SP_500_Price_close.plot()
+plt.show()
+
+SP_500_Price_close["SMA200"] = SP_500_Price.Close.rolling(window = 200).mean() #mean can be changed with median, max, min
+SP_500_Price_close.plot(figsize = (15,10), fontsize =15)
+plt.show()
 
 
+#%% EMWA - Section 10: Dealing with SP500 data
+"""
+EMA places more weight on the latest history, hence it adopts to change more quickly than SMA
+EMA would be handy if the investor wants to move in and out quickly (based on market changes)
+"""
+SP_500_Price = pd.read_excel("SP500.xls", sheet_name="SP500",parse_dates=["Date"], index_col = "Date", usecols="A:G")
+SP_500_Price_close = SP_500_Price.Close.to_frame()
+SP_500_Price_close = SP_500_Price_close.loc["2008-12-31":"2018-12-28"].copy()
+SP_500_Price_close["EMA"] = SP_500_Price_close.Close.ewm(span = 100, min_periods=100).mean()
+SP_500_Price_close["SMA"] = SP_500_Price_close.Close.rolling(window = 100).mean()
+
+SP_500_Price_close.iloc[:,-2:].plot(figsize = (15,10), fontsize =15)
+plt.show()
+
+#%% Miselleneous 
+
+# Merging the data
+stocks = pd.read_csv("stocks.csv", header = [0,1], index_col=[0], parse_dates =[0]).Close
+
+aapl = stocks.loc["2010-01-01":"2014-12-31", "AAPL"].to_frame().copy()
+ba = stocks.loc["2012-01-01":"2016-12-31", "BA"].to_frame().copy()
+aapl["BA"] = ba.BA
+aapl = aapl.dropna()
+
+# Getting the BA dataframe on AAPL dataframe timeline
+ba = ba.reindex(aapl.index).dropna()
+
+# To get the day, month, day_name year attribute of the index
+stocks.index.day #month, year, day_name(), weekday_name(), month_name(), weekday, quarter, days_in_month, week, is_month_end
+
+stocks["DayOfYear"] = stocks.index.dayofyear
+
+# Filling the gaps NA
+all_days = pd.date_range(start = "2009-12-31", end ="2019-02-06", freq='D')
+stocks = stocks.reindex(all_days)
+stocks.DayOfYear = stocks.index.dayofyear #Editing existing column of the Dataframe
+stocks = stocks.fillna(method = "ffill") #bfill, .interpolate()
+
+# Dealing with timezones
+ge = pd.read_csv("GE_prices.csv", parse_dates =["date"], index_col = "date")
+timezone = ge.index.tz
+
+# If timezone is none, there is no timezone associate with the data
+ge.tz_localize("UTC") 
+ge = ge.tz_localize("America/New_York")
+
+# If you have localized the timezone you can convert it to other time zones
+ge_la = ge.tz_convert("America/Los_Angeles")
+comb = pd.concat([ge,ge_la], axis =1) #This will simply use a common UCT time zone
+
+#TO get all the time zones
+import pytz
+pytz.common_timezones
 
 
-
+#%% Class - Section 11: Class for generating all the stats for a stock
+# class FinancialInstrument():
+#     def __init__(mean_returns, data, ):
+        
+    
