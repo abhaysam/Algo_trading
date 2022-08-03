@@ -300,7 +300,12 @@ pytz.common_timezones
 
 
 #%% Class - Section 11: Class for generating all the stats for a stock
-# class FinancialInstrument():
-#     def __init__(mean_returns, data, ):
-        
+class FinancialInstrument():
+    def __init__(self, ticker, start_date, end_date):
+        self.ticker = ticker
+        self.start_date = start_date
+        self.end_date = end_date
+
+stock = FinancialInstrument("AAPL", "2015-01-01", "2019-12-31")
+
     
