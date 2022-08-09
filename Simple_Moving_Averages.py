@@ -24,3 +24,14 @@ eurusd["cumulative_max"] = eurusd.cumulative_returns.cummax()
 annualized_returns = eurusd.returns.mean()*252
 volatility = eurusd.returns.std() * np.sqrt(252)
 drawdown = (eurusd["cumulative_max"] - eurusd["cumulative_returns"]).max()
+
+# Essentials for a cross-over strategy
+sma_s = 50
+sma_l = 200
+
+eurusd["SMA_S"] = eurusd.price.rolling(sma_s).mean()
+eurusd["SMA_L"] = eurusd.price.rolling(sma_l).mean()
+
+# Visualizing the data
+eurusd.plot(figsize = (12, 8), title = "EUR/USD", fontsize = 12)
+plt.show()
