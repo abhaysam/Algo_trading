@@ -32,6 +32,11 @@ sma_l = 200
 eurusd["SMA_S"] = eurusd.price.rolling(sma_s).mean()
 eurusd["SMA_L"] = eurusd.price.rolling(sma_l).mean()
 
+
+# Positions
+eurusd["position"] = np.where(eurusd["SMA_S"]>eurusd["SMA_L"],1,-1)
+
+
 # Visualizing the data
-eurusd.plot(figsize = (12, 8), title = "EUR/USD", fontsize = 12)
+eurusd.loc["2016",["price", "SMA_S", "SMA_L", "position"]].plot(figsize = (12, 8), title = "EUR/USD", fontsize = 12, secondary_y = "position")
 plt.show()
