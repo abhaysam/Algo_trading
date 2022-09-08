@@ -29,8 +29,17 @@ class SMABacktester():
         raw["SMA_L"] = raw.price.rolling(self.SMA_L).mean()
         self.data = raw
         return raw
-
+    
+    def set_parameters(self, SMA_S = None, SMA_L = None):
+        if SMA_S is not None:
+            self.SMA_S = SMA_S
+            self.data["SMA_S"] = self.data.price.rolling(self.SMA_S).mean()
+        if SMA_L is not None:
+            self.SMA_L = SMA_L
+            self.data["SMA_L"] = self.data.price.rolling(self.SMA_L).mean()
+            
 tester = SMABacktester("AUDEUR=X", 50,250,"2010-01-01","2019-12-31")    
 tester.data.isna().sum()
 
-        
+tester.set_parameters(SMA_S = 25, SMA_L = 125)    
+tester.data.isna().sum()
