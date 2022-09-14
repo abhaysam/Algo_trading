@@ -1,8 +1,8 @@
-import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from itertools import product
+from data_downloader import data_downloader
 plt.style.use("seaborn")
 
 
@@ -44,7 +44,7 @@ class SMABacktester():
     def get_data(self):
         ''' Imports the data from forex_pairs.csv (source can be changed).
         '''
-        raw = yf.download(self.symbol, self.start, self.end).Close.to_frame()
+        raw = data_downloader(self.symbol, self.start, self.end)
         raw = raw.rename(columns={'Close':'price'})
         raw['price'].to_frame().dropna()
         raw = raw.loc[self.start:self.end].copy()
