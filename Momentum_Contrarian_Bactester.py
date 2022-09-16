@@ -30,7 +30,9 @@ data["creturns"] = data["returns"].cumsum().apply(np.exp)
 # Plotting the results:
 data[["creturns","cstrategy"]].plot(figsize = (12, 8), title = "EUR/USD | Window = {}".format(window))
 
-
+# Profit loss on the strategy
+data.dropna(inplace = True)
+data[["returns","strategy"]].sum().apply(np.exp)
 
 
 
