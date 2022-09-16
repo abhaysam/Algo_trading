@@ -5,7 +5,6 @@ from itertools import product
 from data_downloader import data_downloader
 plt.style.use("seaborn")
 
-
 class SMABacktester():
     
     def __init__(self, symbol, SMA_S, SMA_L, start, end):
@@ -44,7 +43,11 @@ class SMABacktester():
     def get_data(self):
         ''' Imports the data from forex_pairs.csv (source can be changed).
         '''
-        raw = data_downloader('yf', self.symbol, self.start, self.end)
+        input_varibales = {'symbol' : self.symbol,
+                           'start' : self.start,
+                           'end' : self.end,
+                           'period':None}
+        raw = data_downloader('yf', input_varibales).Close.to_frame()
         raw = raw.rename(columns={'Close':'price'})
         raw['price'].to_frame().dropna()
         raw = raw.loc[self.start:self.end].copy()
@@ -125,7 +128,7 @@ class SMABacktester():
 # tester.plot_results()
 # tester.results_overview
 
-
+    
 
 
 
