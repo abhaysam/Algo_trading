@@ -44,3 +44,16 @@ data[to_plot].dropna().cumsum().apply(np.exp).plot(figsize = (12,8))
 plt.title("DJI Intraday - 6h bars", fontsize = 12)
 plt.legend(fontsize = 12)
 plt.show()
+
+# Trading costs
+ptc = 0.00007
+data["trades"] = data.position.diff().fillna(0).abs()
+data.trades.value_counts()
+
+data["strategy_net"] = data.strategy - data.trades*ptc
+data["cstrategy_net"] = data.strategy_net.cumsum().apply(np.exp)
+
+# Plotting the results:
+data[["creturns","cstrategy","cstrategy_net"]].plot(figsize = (12, 8), title = "EUR/USD | Window = {}".format(window))
+
+
