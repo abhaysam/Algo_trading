@@ -122,11 +122,7 @@ class SMABacktester():
     
         return opt, best_perf
         
-# tester = SMABacktester("EURUSD=X", 50,200,"2004-01-01","2020-06-30")    
-# tester.test_strategy()
-# tester.optimize_parameters((10,50,1),(100,252,1))
-# tester.plot_results()
-# tester.results_overview
+
 
     
 
