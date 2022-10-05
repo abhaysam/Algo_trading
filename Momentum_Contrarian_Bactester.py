@@ -56,4 +56,9 @@ data["cstrategy_net"] = data.strategy_net.cumsum().apply(np.exp)
 # Plotting the results:
 data[["creturns","cstrategy","cstrategy_net"]].plot(figsize = (12, 8), title = "EUR/USD | Window = {}".format(window))
 
+# Forming a Class
+input_variables = {'name':"intraday_pairs.csv"}
+data = data_downloader('csv', input_variables)
+data = data.set_index('time')
+
 
