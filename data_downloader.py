@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 # To pull the data from yahoo finance
 import yfinance as yf
@@ -70,7 +69,7 @@ def data_downloader(platform, input_variables):
             # Several pulls needs to be made if the granularity is not daily
             raw = api.get_history(instrument = symbol,start = start, end = end, granularity = interval, price = price)
     elif platform == 'csv':
-        csv_toload = input_variables['name']
+        csv_toload = input_variables['symbol']
         raw =  pd.read_csv(csv_toload)        
     return raw
     
