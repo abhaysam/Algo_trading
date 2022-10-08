@@ -1,4 +1,4 @@
-# Assessment Index Modelling
+# Algirithmic Trading with automation and risk assessment
 
 The idea is not only that you can show us what you've got, but also that you can get a first impression 
 of what it means to build an index model.
