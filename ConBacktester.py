@@ -57,6 +57,10 @@ class ConBacktester():
         data = self.data.copy().dropna()
         data["position"] = -np.sign(data["returns"].rolling(self.window).mean())
         data["strategy"] = data.position.shift(1)*data["returns"]
+        if self.fees is not None:
+            data["trades"] = data.position.diff().fillna(0).abs()
+            data.trades.value_counts()        
+            data["strategy_net"] = data.strategy - data.trades*self.fees
 
         data.dropna(inplace = True)
         data["creturns"] = data["returns"].cumsum().apply(np.exp) # Buy and Hold
@@ -87,6 +91,10 @@ class ConBacktester():
         for w in [1,2,3,5,10]:
             data["position{}".format(w)] = -np.sign(data["returns"].rolling(w).mean())
             data["strategy{}".format(w)] = data["position{}".format(w)].shift(1)*data["returns"]
+            if self.fees is not None:
+                data["trades"] = data["position{}".format(w)].diff().fillna(0).abs()
+                data.trades.value_counts()
+                data["strategy{}".format(w)] = data["strategy{}".format(w)] - data.trades*self.fees
             to_plot.append("strategy{}".format(w))
             results.append(self.test_strategy()[0])
             

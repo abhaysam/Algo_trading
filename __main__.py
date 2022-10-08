@@ -10,7 +10,7 @@ tester.results_overview
 #%% Testing the Contrarian or Momentum trading strategy (We take positions exactly opposite to the trends)
 
 from ConBacktester import ConBacktester
-tester = ConBacktester("intraday.csv", 3,"2018-01-01","2019-12-30",0.00007)    
+tester = ConBacktester("intraday.csv", 3,"2018-01-01","2019-12-30",0.0000)    
 tester.test_strategy()
 tester.plot_results()
 tester.optimize_parameters([1,2,3,5,10])
