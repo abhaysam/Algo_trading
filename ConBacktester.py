@@ -1,12 +1,13 @@
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from data_downloader import data_downloader
 plt.style.use("seaborn")
 
 class ConBacktester():
     
-    def __init__(self, symbol, window, start, end, fees):
+    def __init__(self, symbol, window, start, end, fees = 0, ticker = None):
         """
 
         Parameters
@@ -28,6 +29,7 @@ class ConBacktester():
 
         """
         self.symbol = symbol
+        self.ticker = ticker
         self.window = window
         self.start = start
         self.end = end
@@ -47,6 +49,14 @@ class ConBacktester():
                            'period':None}
         raw = data_downloader('csv', input_varibales)
         raw = raw.set_index('time')
+        if len(list(raw)) > 1 and self.ticker is None:
+            print("The csv choosen has data for more than one asset which are {}. Please provide a ticker".format(len(raw)))
+        elif len(list(raw)) > 1 and self.ticker is not None:
+            raw = raw[[self.ticker]].dropna()
+            raw = raw.rename(columns={self.ticker:'price'})
+        else:
+            raw = raw.dropna()
+            raw = raw.rename(columns={list(raw)[0]:'price'})
         raw = raw.loc[self.start:self.end].copy()
         raw["returns"] = np.log(raw/raw.shift(1))
         self.data = raw 
@@ -57,12 +67,13 @@ class ConBacktester():
         data = self.data.copy().dropna()
         data["position"] = -np.sign(data["returns"].rolling(self.window).mean())
         data["strategy"] = data.position.shift(1)*data["returns"]
-        if self.fees is not None:
-            data["trades"] = data.position.diff().fillna(0).abs()
-            data.trades.value_counts()        
-            data["strategy_net"] = data.strategy - data.trades*self.fees
-
         data.dropna(inplace = True)
+        
+        data["trades"] = data.position.diff().fillna(0).abs()
+        data.trades.value_counts()        
+        data["strategy"] = data.strategy - data.trades*self.fees
+
+        
         data["creturns"] = data["returns"].cumsum().apply(np.exp) # Buy and Hold
         data["cstrategy"] = data["strategy"].cumsum().apply(np.exp) # Contrarian Strategy
         self.results = data
@@ -82,33 +93,33 @@ class ConBacktester():
             
     def optimize_parameters(self, window_range):
         ''' Tries various rolling windows in-order to find the global maxima.
+            
+        Parameters
+        ----------
+        
+        window_range : tuple
+            tuples of the form (start, end, step_size)
         '''
-
+        windows = range(*window_range)
+        
         # Testing all combinations
         results = []
-        to_plot = ["returns"]
-        data = self.data.copy()
-        for w in [1,2,3,5,10]:
-            data["position{}".format(w)] = -np.sign(data["returns"].rolling(w).mean())
-            data["strategy{}".format(w)] = data["position{}".format(w)].shift(1)*data["returns"]
-            if self.fees is not None:
-                data["trades"] = data["position{}".format(w)].diff().fillna(0).abs()
-                data.trades.value_counts()
-                data["strategy{}".format(w)] = data["strategy{}".format(w)] - data.trades*self.fees
-            to_plot.append("strategy{}".format(w))
+        for window in windows:
+            self.window = window
             results.append(self.test_strategy()[0])
-            
-        data = data[to_plot].dropna().cumsum().apply(np.exp)
-        best_perf = np.max(data.iloc[-1,:].values)
-        best_performing_window = window_range[np.argmax(data.iloc[-1,:].values)]
         
-        # Plotting the results
-        data.plot(figsize = (12,8))
-        plt.title("Contrarian strategy results with various rolling windows - 6h bars", fontsize = 12)
-        plt.legend(fontsize = 12)
-        plt.show()
+        best_perf = np.max(results) #best performance
+        opt = windows[np.argmax(results)] #Optimal performance
+        
+        #Set the optimal performance
+        self.window = opt
+        self.test_strategy()
+        
+        # Compiling all the results
+        all_results = pd.DataFrame(data = {"window": windows, "performance": results})
+        self.results_overview = all_results
             
-        return best_perf, best_performing_window
+        return opt, best_perf
         
 
 

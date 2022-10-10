@@ -16,17 +16,21 @@ def data_downloader(platform, input_variables):
         symbol = input_variables['symbol']
         start = input_variables['start']
         end = input_variables['end']
-        period = input_variables['period']
-        interval = input_variables['interval']
+        if "period" not in input_variables:
+            period = input_variables['period']
+        else:
+            period = '1d'
+        if "interval" not in input_variables:
+            interval = '1d'
+        else:
+            interval = input_variables['interval']
+            
         valid_periods = ['1d','5d','1mo','3mo','6mo','1y','2y','5y','10y','ytd','max']
         valid_intervals = ['1m','2m','5m','15m','30m','60m','90m','1h','1d','5d','1wk','1mo','3mo']
-        if period == None:
-            period = '1d'
-        elif period != None and period not in valid_periods:
+
+        if period != None and period not in valid_periods:
             raise Exception("Please select an appropriate period")
-        if interval == None:
-            interval = '1d'
-        elif interval != None and interval not in valid_intervals:
+        if interval != None and interval not in valid_intervals:
             raise Exception("Please select an appropriate interval")
         raw = yf.download(tickers = symbol, start = start, end = end, period = period, interval = interval)
     elif platform == 'oanda': 

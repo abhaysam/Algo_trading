@@ -7,7 +7,7 @@ plt.style.use("seaborn")
 
 class SMABacktester():
     
-    def __init__(self, symbol, SMA_S, SMA_L, start, end):
+    def __init__(self, symbol, SMA_S, SMA_L, start, end, fees = 0):
         """
 
         Parameters
@@ -22,6 +22,8 @@ class SMABacktester():
             start date for data import.
         end : str
             end date for data import.
+        fees : float
+            transaction fees 
 
         Returns
         -------
@@ -36,9 +38,10 @@ class SMABacktester():
         self.results = None
         self.get_data()
         self.prepare_data()
+        self.fees = fees
         
     def __repr__(self):
-        return "SMABacktester(symbol = {}, SMA_S = {}, SMA_S = {}, start = {}, end = {}".format(self.symbol, self.SMA_S, self.SMA_L, self.start, self.end)
+        return "SMABacktester(symbol = {}, SMA_S = {}, SMA_L = {}, start = {}, end = {}, fees  = {}".format(self.symbol, self.SMA_S, self.SMA_L, self.start, self.end, self.fees)
 
     def get_data(self):
         ''' Imports the data from forex_pairs.csv (source can be changed).
@@ -79,6 +82,12 @@ class SMABacktester():
         data["position"] = np.where(data["SMA_S"] > data["SMA_L"],1,-1)
         data["strategy"] = data["position"].shift(1)*data["returns"]
         data.dropna(inplace = True)
+        
+        # Applying transaction fees
+        data["trades"] = data.position.diff().fillna(0).abs()
+        data.trades.value_counts()        
+        data["strategy"] = data.strategy - data.trades*self.fees
+    
         data["creturns"] = data["returns"].cumsum().apply(np.exp)
         data["cstrategy"] = data["strategy"].cumsum().apply(np.exp)
         self.results = data
