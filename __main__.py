@@ -14,3 +14,5 @@ tester = ConBacktester("intraday.csv", 3,"2018-01-01","2019-12-30",0.0000)
 tester.test_strategy()
 tester.plot_results()
 tester.optimize_parameters([1,2,3,5,10])
+
+#%% Mean reversion strategy
